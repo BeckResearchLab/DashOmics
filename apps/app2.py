@@ -18,7 +18,7 @@ from scipy.spatial.distance import cdist, pdist
 print(__file__)
 from app import app
 
-df = pd.read_csv('df5_log2_ratio.csv', index_col = ['locus_tag'])
+df = pd.read_csv('./data/example-1.csv', index_col = ['locus_tag'])
 
 layout = html.Div([
     html.H3('Model Evaluation：Elbow Method'),

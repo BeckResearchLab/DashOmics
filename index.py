@@ -18,6 +18,8 @@ def display_page(pathname):
     print(pathname)
     if pathname == '/':
          return homepage.layout
+    elif pathname is None:
+         return "Loading"
     elif pathname == '/apps/app1':
          return app1.layout
     elif pathname == '/apps/app2':

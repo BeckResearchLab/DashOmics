@@ -4,23 +4,18 @@ import io
 
 import dash
 from dash.dependencies import Input, Output
-import dash_html_components as html
 import dash_core_components as dcc
+import dash_html_components as html
 import dash_table_experiments as dt
 
-from app import app
 import pandas as pd
+
+
+app = dash.Dash()
 
 app.scripts.config.serve_locally = True
 
-layout = html.Div(children=[
-
-    html.H1(children='Home Page'),
-
-    html.Div(children='''
-        A Visualization Tool for Clustering Analysis on Transcriptomics Data
-    '''),
-
+app.layout = html.Div([
     dcc.Upload(
         id='upload-data',
         children=html.Div([
@@ -40,17 +35,8 @@ layout = html.Div(children=[
         # Allow multiple files to be uploaded
         multiple=True
     ),
-
     html.Div(id='output-data-upload'),
-
-    # DataTable cannot be crawled from layout
-    #html.Div(dt.DataTable(rows=[{}]), style={'display': 'none'}),
-
-    html.Div([
-        dcc.Link('Go to Silhouette Analysis', href='/apps/app1'),
-        html.P(''),
-        dcc.Link('Go to Elbow Method', href='/apps/app2')
-    ])
+    html.Div(dt.DataTable(rows=[{}]), style={'display': 'none'})
 ])
 
 
@@ -78,14 +64,12 @@ def parse_contents(contents, filename, date):
 
         # Use the DataTable prototype component:
         # github.com/plotly/dash-table-experiments
-
-        # DataTable cannot be crawled from layout
-        #dt.DataTable(rows=df.to_dict('records')),
+        dt.DataTable(rows=df.to_dict('records')),
 
         html.Hr(),  # horizontal line
 
         # For debugging, display the raw contents provided by the web browser
-        html.Div('Raw Content Upload Successfully'),
+        html.Div('Raw Content'),
         html.Pre(contents[0:200] + '...', style={
             'whiteSpace': 'pre-wrap',
             'wordBreak': 'break-all'
@@ -104,7 +88,10 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
             zip(list_of_contents, list_of_names, list_of_dates)]
         return children
 
-
 app.css.append_css({
     'external_url': 'https://codepen.io/chriddyp/pen/bWLwgP.css'
 })
+
+
+if __name__ == '__main__':
+    app.run_server(debug=True)

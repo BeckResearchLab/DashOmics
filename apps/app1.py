@@ -14,7 +14,7 @@ from sklearn.metrics import silhouette_score
 #sys.path.append(os.path.join(os.path.dirname(sys.path[0])))
 from app import app
 
-df = pd.read_csv('df5_log2_ratio.csv', index_col = ['locus_tag'])
+df = pd.read_csv('./data/example-1.csv', index_col = ['locus_tag'])
 
 layout = html.Div([
     html.H3('Model Evaluation: Silhouette Analysis'),
