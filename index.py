@@ -3,7 +3,8 @@ import dash_core_components as dcc
 import dash_html_components as html
 
 from app import app
-from apps import homepage, app1, app2
+import homepage
+from ModelEvaluation import SilhouetteAnalysis, ElbowMethod
 
 
 app.layout = html.Div([
@@ -20,10 +21,10 @@ def display_page(pathname):
          return homepage.layout
     elif pathname is None:
          return "Loading"
-    elif pathname == '/apps/app1':
-         return app1.layout
-    elif pathname == '/apps/app2':
-         return app2.layout
+    elif pathname == '/ModelEvaluation/SilhouetteAnalysis':
+         return SilhouetteAnalysis.layout
+    elif pathname == '/ModelEvaluation/ElbowMethod':
+         return ElbowMethod.layout
     else:
         return '404'
 
