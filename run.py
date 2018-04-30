@@ -17,16 +17,14 @@ app.layout = html.Div([
               [Input('url', 'pathname')])
 def display_page(pathname):
     print(pathname)
-    if pathname == '/':
-         return homepage.layout
-    elif pathname is None:
+    if pathname is None:
          return "Loading"
     elif pathname == '/ModelEvaluation/SilhouetteAnalysis':
          return SilhouetteAnalysis.layout
     elif pathname == '/ModelEvaluation/ElbowMethod':
          return ElbowMethod.layout
     else:
-        return '404'
+        return homepage.layout
 
 if __name__ == '__main__':
     app.run_server(debug=True)
