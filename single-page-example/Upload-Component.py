@@ -16,6 +16,16 @@ from sklearn.cluster import KMeans
 from sklearn import metrics
 from scipy.spatial.distance import cdist, pdist
 
+### new
+import sqlite3
+###
+
+#create sql_master table
+con = sqlite3.connect("dashomics-data.db")
+sql_master = pd.DataFrame({'name': ['example-1']})
+sql_master.to_sql('sql_master', con, if_exists='append')
+con.close()
+
 #import sys
 #import os
 #sys.path.append(os.path.join(os.path.dirname(sys.path[0])))
@@ -97,9 +107,17 @@ def parse_contents(contents, filename):
                Input('upload-data', 'filename')])
 def update_output(contents, filename):
     if contents is not None:
+        ### add df to sqlite
+        con = sqlite3.connect("dashomics-data.db")
         df = parse_contents(contents, filename)[0]
         if df is not None:
-            return df.to_dict('records')
+            df.to_sql(filename, con, if_exists="replace")
+            dff = pd.read_sql_query('SELECT * FROM "example-1.csv"', con)
+            print(dff)
+            con.close()
+            ###
+            return dff.to_dict('records')
+        ###
         else:
             return [{}]
     else:
