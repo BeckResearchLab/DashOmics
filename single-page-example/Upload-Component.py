@@ -16,14 +16,19 @@ from sklearn.cluster import KMeans
 from sklearn import metrics
 from scipy.spatial.distance import cdist, pdist
 
-### new
 import sqlite3
-###
 
 #create sql_master table
-con = sqlite3.connect("dashomics-data.db")
-sql_master = pd.DataFrame({'name': ['example-1']})
-sql_master.to_sql('sql_master', con, if_exists='append')
+con = sqlite3.connect("dbtest-1.db")
+sql_master = pd.DataFrame({'name': ['example_1','example_2_cancer']})
+sql_master.to_sql('sql_master', con, if_exists='replace')
+
+#add example data into sqlite
+example_1 = pd.read_csv('../data/example-1.csv', index_col = ['id'])
+example_1.to_sql('example_1', con, if_exists="replace")
+
+example_2 = pd.read_csv('../data/example-2-cancer.csv', index_col = ['id'])
+example_2.to_sql('example_2_cancer', con, if_exists="replace")
 con.close()
 
 #import sys
@@ -32,14 +37,21 @@ con.close()
 
 print(__file__)
 
-
-#df = pd.read_csv('./data/example-1.csv', index_col = ['locus_tag'])
 app = dash.Dash()
 
 app.layout = html.Div([
     html.Div([
 
-        html.H5("Upload Files"),
+        html.H3("Choosing Example Data to Explore DashOmics"),
+        dcc.Dropdown(
+            id='example-data',
+            options = [
+                {'label':'example_1', 'value':'example_1'},
+                {'label':'example_2', 'value':'example_2_cancer'}
+            ],
+            value = 'Choose an example data'),
+
+        html.H3("Or Upload Your Own Files"),
         dcc.Upload(
             id='upload-data',
             children=html.Div([
@@ -59,7 +71,7 @@ app.layout = html.Div([
             multiple=False),
 
         html.Br(),
-        html.H5("Updated Table"),
+        html.H4("Updated Table"),
         html.Div(dt.DataTable(rows=[{}], id='table'))
 
     ]),
@@ -101,43 +113,54 @@ def parse_contents(contents, filename):
     ])
 
 
-# callback table creation
+# update sqlite database and display in layout DataTable
 @app.callback(Output('table', 'rows'),
               [Input('upload-data', 'contents'),
-               Input('upload-data', 'filename')])
-def update_output(contents, filename):
-    if contents is not None:
-        ### add df to sqlite
-        con = sqlite3.connect("dashomics-data.db")
-        df = parse_contents(contents, filename)[0]
+               Input('upload-data', 'filename'),
+               Input('example-data','value')])
+def update_database(upload_contents, upload_filename, example_filename):
+    if upload_contents is not None:
+        # add uploaded df to sqlite
+        con = sqlite3.connect("dbtest-1.db")
+        df = parse_contents(upload_contents, upload_filename)[0]
         if df is not None:
-            df.to_sql(filename, con, if_exists="replace")
-            dff = pd.read_sql_query('SELECT * FROM "example-1.csv"', con)
-            print(dff)
+            df.to_sql(upload_filename, con, if_exists="replace")
             con.close()
-            ###
-            return dff.to_dict('records')
-        ###
+            #display table in layout
+            return df.to_dict('records')
         else:
             return [{}]
+    if example_filename is not 'Choose an example data':
+        con = sqlite3.connect("dbtest-1.db")
+        df = pd.read_sql_query('SELECT * FROM %s' % str(example_filename).split('.')[0], con)
+        if df is not None:
+            con.close()
+            return df.to_dict('records')
+        else:
+            return [{}]
+    if (upload_contents is not None) & (example_filename is not 'Choose an example data'):
+        raise ValueError('Upload data conflicts with Example data')
     else:
         return [{}]
 
-
+# apply elbow method analysis
 @app.callback(
     Output('graph-elbow_method', 'figure'),
     [Input(component_id='k-range',component_property='value'),
-     Input('table', 'rows')]
+     Input('example-data', 'value')]
 )
-def elbow_method_evaluation(n, tablerows):
+
+def elbow_method_evaluation(n, filename):
     """
     n: the maximum of k value
-
     """
     # Fit the kmeans model for k in a certain range
 
-    dff = pd.DataFrame(tablerows).set_index('locus_tag')
-    #print(dff)
+    # read dataframe from sqlite database
+    con = sqlite3.connect("dbtest-1.db")
+    # make sure file extension is not in sqlite
+    dff = pd.read_sql_query('SELECT * FROM %s' % str(filename).split('.')[0], con).set_index(['id'])
+    con.close()
 
     K = range(1, n + 1)
     KM = [KMeans(n_clusters=k).fit(dff) for k in K]
@@ -193,6 +216,7 @@ def elbow_method_evaluation(n, tablerows):
                          title='Model Evaluation: Elbow Method for Optimal K Value')
 
     return fig
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)
