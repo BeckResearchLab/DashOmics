@@ -18,7 +18,12 @@ from scipy.spatial.distance import cdist, pdist
 print(__file__)
 from app import app
 
-df = pd.read_csv('./data/example-1.csv', index_col = ['locus_tag'])
+import sqlite3
+import re
+
+#df = pd.read_csv('../data/example-1.csv', index_col = ['id'])
+
+app.config.supress_callback_exceptions = True
 
 layout = html.Div([
     html.H3('Model Evaluation：Elbow Method'),
@@ -28,7 +33,11 @@ layout = html.Div([
     html.Div([
         dcc.Link('Go to Home Page', href='/'),
         html.P(''),
-        dcc.Link('Go to Silhouette Analysis', href='/ModelEvaluation/SilhouetteAnalysis')
+        dcc.Link('Go to Silhouette Analysis', href='/ModelEvaluation/SilhouetteAnalysis'),
+        html.P(''),
+        dcc.Link('Go to Clusters Overview', href='/ClustersProfile/ClustersOverview'),
+        html.P(''),
+        dcc.Link('Go to Choose Gene', href='/ClustersProfile/ChooseGene')
     ])
 ])
 
@@ -41,6 +50,18 @@ def elbow_method_evaluation(n):
     n: the maximum of k value
 
     """
+    con = sqlite3.connect('dashomics_test.db')
+    c = con.cursor()
+    # create a table in db to store what users choose at homepage
+    c.execute('''SELECT filename FROM sql_master
+                 WHERE Choose_or_Not = 'Yes'
+              ''')
+    con.commit()
+    filename = re.findall(r"'(.*?)'", str(c.fetchone()))[0]  # choose the first filename that match the pattern
+
+    df = pd.read_sql_query('SELECT * FROM %s' % str(filename), con).set_index('id')
+    con.close()
+
     # Fit the kmeans model for k in a certain range
     K = range(1, n + 1)
     KM = [KMeans(n_clusters=k).fit(df) for k in K]

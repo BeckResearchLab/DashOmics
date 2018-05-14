@@ -8,48 +8,90 @@ import dash_html_components as html
 import dash_core_components as dcc
 import dash_table_experiments as dt
 
-from app import app
+#from app import app
 import pandas as pd
+import re
+
+import sqlite3
+
+
+app = dash.Dash()
+app.config.supress_callback_exceptions = True
+
+#create sql_master table
+con = sqlite3.connect("dashomics_test.db")
+c = con.cursor()
+master_data = [['example_1','No'],['example_2_cancer','No']]
+sql_master = pd.DataFrame(master_data, columns = ['Filename','Choose_or_Not'])
+sql_master.to_sql('sql_master', con, if_exists='replace')
+
+#add example data into sqlite
+example_1 = pd.read_csv('../data/example-1.csv', index_col = ['id'])
+example_1.to_sql('example_1', con, if_exists="replace")
+
+example_2 = pd.read_csv('../data/example-2-cancer.csv', index_col = ['id'])
+example_2.to_sql('example_2_cancer', con, if_exists="replace")
+con.close()
 
 app.scripts.config.serve_locally = True
 
 layout = html.Div(children=[
 
-    html.H1(children='Home Page'),
+    html.H1(children='DashOmics'),
 
     html.Div(children='''
-        A Visualization Tool for Clustering Analysis on Transcriptomics Data
+        DashOmics is a visualization tool to explore *omics data using clustering analysis. 
+        It is created by Dash Plot.ly, a Python framework for building interactive analytical tools.
+        Users can play with existing example data, or upload their own data in SQLite database. 
+        K-Means clustering method would be applied on RNA-seq data, including two model evaluation methods — elbow method and silhouette analysis, 
+        to help find the optimal k value (the number of clusters). 
+        Users can explore cluster profiles of grouped genes based on specific k value and generate insights into gene functions and networks.
     '''),
 
-    dcc.Upload(
-        id='upload-data',
-        children=html.Div([
-            'Drag and Drop or ',
-            html.A('Select Files')
-        ]),
-        style={
-            'width': '100%',
-            'height': '60px',
-            'lineHeight': '60px',
-            'borderWidth': '1px',
-            'borderStyle': 'dashed',
-            'borderRadius': '5px',
-            'textAlign': 'center',
-            'margin': '10px'
-        },
-        # Allow multiple files to be uploaded
-        multiple=True
-    ),
+    html.Div([
+        html.H3("Choosing Example Data to Explore DashOmics"),
+        dcc.Dropdown(
+            id='example-data',
+            options = [
+                {'label':'example_1', 'value':'example_1'},
+                {'label':'example_2', 'value':'example_2_cancer'}
+            ]),
+
+        html.H3("Or Upload Your Own Files"),
+        dcc.Upload(
+            id='upload-data',
+            children=html.Div([
+                'Drag and Drop or ',
+                html.A('Select Files')
+            ]),
+            style={
+                'width': '100%',
+                'height': '60px',
+                'lineHeight': '60px',
+                'borderWidth': '1px',
+                'borderStyle': 'dashed',
+                'borderRadius': '5px',
+                'textAlign': 'center',
+                'margin': '10px'
+            },
+            multiple=False),
+
+        html.Br(),
+        html.H4("Updated Table"),
+        #html.Div(dt.DataTable(rows=[{}], id='table'))
+
+    ]),
 
     html.Div(id='output-data-upload'),
-
-    # DataTable cannot be crawled from layout
-    #html.Div(dt.DataTable(rows=[{}]), style={'display': 'none'}),
-
+    #Links
     html.Div([
         dcc.Link('Go to Silhouette Analysis', href='/ModelEvaluation/SilhouetteAnalysis'),
         html.P(''),
-        dcc.Link('Go to Elbow Method', href='/ModelEvaluation/ElbowMethod')
+        dcc.Link('Go to Elbow Method', href='/ModelEvaluation/ElbowMethod'),
+        html.P(''),
+        dcc.Link('Go to Clusters Overview', href='/ClustersProfile/ClustersOverview'),
+        html.P(''),
+        dcc.Link('Go to Choose Gene', href='/ClustersProfile/ChooseGene')
     ])
 ])
 
@@ -72,37 +114,71 @@ def parse_contents(contents, filename, date):
             'There was an error processing this file.'
         ])
 
-    return html.Div([
+    return df, html.Div([
         html.H5(filename),
-        html.H6(datetime.datetime.fromtimestamp(date)),
+        html.Hr(),  # horizontal line
+        # For debugging, display the raw contents provided by the web browser
+        html.Div('Raw Content Upload Successfully')
 
         # Use the DataTable prototype component:
         # github.com/plotly/dash-table-experiments
 
         # DataTable cannot be crawled from layout
         #dt.DataTable(rows=df.to_dict('records')),
-
-        html.Hr(),  # horizontal line
-
-        # For debugging, display the raw contents provided by the web browser
-        html.Div('Raw Content Upload Successfully'),
-        html.Pre(contents[0:200] + '...', style={
-            'whiteSpace': 'pre-wrap',
-            'wordBreak': 'break-all'
-        })
     ])
 
 
-@app.callback(Output('output-data-upload', 'children'),
+# update sqlite database
+# and display in layout DataTable
+@app.callback(Output('table', 'rows'),
               [Input('upload-data', 'contents'),
                Input('upload-data', 'filename'),
-               Input('upload-data', 'last_modified')])
-def update_output(list_of_contents, list_of_names, list_of_dates):
-    if list_of_contents is not None:
-        children = [
-            parse_contents(c, n, d) for c, n, d in
-            zip(list_of_contents, list_of_names, list_of_dates)]
-        return children
+               Input('example-data','value')])
+
+#create a table in db to store what users choose at homepage
+def update_database(upload_contents, upload_filename, example_filename):
+
+
+    #display upload data
+    if upload_contents is not None:
+        # add uploaded df to sqlite
+        con = sqlite3.connect("dashomics_test.db")
+        c = con.cursor()
+        df = parse_contents(upload_contents, upload_filename)[0]
+        if df is not None:
+            #add df into sqlite database as table
+            df.to_sql(upload_filename, con, if_exists="replace")
+            #add upload data filename in sql_master table
+            c.execute('''INSERT INTO sql_master(Filename, Choose_or_Not) 
+                         VALUES ('%s', 'Yes')
+                      ''' % upload_filename)
+            con.commit()
+            con.close()
+            #display table in layout
+            return df.to_dict('records')
+        else:
+            return [{}]
+
+    #display example data
+    if example_filename is not None:
+        con = sqlite3.connect("dashomics_test.db")
+        c = con.cursor()
+        df = pd.read_sql_query('SELECT * FROM %s' % example_filename, con)
+        if df is not None:
+            #update "Choose or Not" status to "Yes" in sql_master table
+            c.execute('''UPDATE sql_master
+                         SET Choose_or_Not = 'Yes'
+                         WHERE Filename = '%s'
+                         ''' % example_filename)
+            con.commit()
+            con.close()
+            return df.to_dict('records')
+        else:
+            return [{}]
+    if (upload_contents is not None) & (example_filename is not 'Choose an example data'):
+        raise ValueError('Upload data conflicts with Example data')
+    else:
+        return [{}]
 
 
 app.css.append_css({

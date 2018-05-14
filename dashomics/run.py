@@ -5,7 +5,9 @@ import dash_html_components as html
 from app import app
 import homepage
 from ModelEvaluation import SilhouetteAnalysis, ElbowMethod
+from ClustersProfile import ClustersOverview, ChooseGene
 
+import sqlite3
 
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
@@ -23,6 +25,10 @@ def display_page(pathname):
          return SilhouetteAnalysis.layout
     elif pathname == '/ModelEvaluation/ElbowMethod':
          return ElbowMethod.layout
+    elif pathname == '/ClustersProfile/ClustersOverview':
+         return ClustersOverview.layout
+    elif pathname == '/ClustersProfile/ChooseGene':
+         return ChooseGene.layout
     else:
         return homepage.layout
 

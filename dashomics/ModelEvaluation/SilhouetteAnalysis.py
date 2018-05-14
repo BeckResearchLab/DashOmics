@@ -14,7 +14,11 @@ from sklearn.metrics import silhouette_score
 #sys.path.append(os.path.join(os.path.dirname(sys.path[0])))
 from app import app
 
-df = pd.read_csv('./data/example-1.csv', index_col = ['locus_tag'])
+import sqlite3
+import re
+#df = pd.read_csv('../data/example-1.csv', index_col = ['id'])
+
+app.config.supress_callback_exceptions = True
 
 layout = html.Div([
     html.H3('Model Evaluation: Silhouette Analysis'),
@@ -24,7 +28,11 @@ layout = html.Div([
     html.Div([
         dcc.Link('Go to Home Page', href='/'),
         html.P(''),
-        dcc.Link('Go to Elbow Method', href='/ModelEvaluation/ElbowMethod')
+        dcc.Link('Go to Elbow Method', href='/ModelEvaluation/ElbowMethod'),
+        html.P(''),
+        dcc.Link('Go to Clusters Overview', href='/ClustersProfile/ClustersOverview'),
+        html.P(''),
+        dcc.Link('Go to Choose Gene', href='/ClustersProfile/ChooseGene')
         ])
     ])
 
@@ -38,6 +46,18 @@ def silhouette_analysis(n):
     n: the maximum of k value
 
     """
+    con = sqlite3.connect('dashomics_test.db')
+    c = con.cursor()
+    # create a table in db to store what users choose at homepage
+    c.execute('''SELECT filename FROM sql_master
+                 WHERE Choose_or_Not = 'Yes'
+              ''')
+    filename = re.findall(r"'(.*?)'", str(c.fetchone()))[0]  # choose the first filename that match the pattern
+
+    con.commit()
+    df = pd.read_sql_query('SELECT * FROM %s' % str(filename), con).set_index('id')
+    con.close()
+
     k_values = np.array([])
     silhouette_scores = np.array([])
 
