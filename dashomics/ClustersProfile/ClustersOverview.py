@@ -6,6 +6,9 @@ from dash.dependencies import Input, Output
 
 import pandas as pd
 from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
 
 print(__file__)
 from app import app
@@ -26,6 +29,7 @@ layout = html.Div([
         dcc.Input(id='cluster-id', value = 0, type = 'number'),
 
     dcc.Graph(id='graph-cluster-size'),
+    dcc.Graph(id='graph-pca-2d'),
     dcc.Graph(id='graph-cluster-profile'),
 
     #Links
@@ -86,6 +90,70 @@ def cluster_size_figure(kvalue):
             hovermode='closest'
         )
     }
+
+#Display the PCA Projection 2D figure
+@app.callback(
+    Output('graph-pca-2d','figure'),
+    [Input(component_id='k-value',component_property='value')])
+def pca_projection(kvalue):
+    # extract df from sqlite database
+    con = sqlite3.connect('dashomics_test.db')
+    c = con.cursor()
+    # create a table in db to store what users choose at homepage
+    c.execute('''SELECT filename FROM sql_master
+                             WHERE Choose_or_Not = 'Yes'
+                          ''')
+    con.commit()
+    filename = re.findall(r"'(.*?)'", str(c.fetchone()))[0]  # choose the first filename that match the pattern
+
+    df = pd.read_sql_query('SELECT * FROM %s' % str(filename), con).set_index('id')
+    con.close()
+
+    X = df
+
+    kmeans = KMeans(n_clusters=kvalue, max_iter=300, random_state=4)
+    kmeans.fit(X)
+
+    labels_kmeans = kmeans.labels_
+    df_clusterid = pd.DataFrame(labels_kmeans, index=data.index)
+    df_clusterid.rename(columns={0: "cluster"}, inplace=True)
+    df = pd.concat([df, df_clusterid], axis=1)
+
+    features = list(df.columns)[:-1]  # delete the last one column:clusterid
+    # Separating out the features
+    x = df.loc[:, features].values
+    # Separating out the target
+    y = df.loc[:, ['cluster']].values
+    # Standardizing the features
+    x = StandardScaler().fit_transform(x)
+
+    pca = PCA(n_components=2)
+    principalComponents = pca.fit_transform(x)
+    principalDf = pd.DataFrame(data=principalComponents
+                               , columns=['PC1', 'PC2'])
+    principalDf.index = df.index
+    finalDf = pd.concat([principalDf, df[['cluster']]], axis=1)
+
+    fig = plt.figure(figsize=(8, 8))
+    ax = fig.add_subplot(1, 1, 1)
+    ax.set_xlabel('Principal Component 1', fontsize=15)
+    ax.set_ylabel('Principal Component 2', fontsize=15)
+    ax.set_title('2 component PCA', fontsize=20)
+
+    cluster_id = list(finalDf['cluster'].unique())
+    # colors = ['r', 'g', 'b']
+    # for cluster_id, color in zip(targets,colors):
+    for i in cluster_id:
+        indicesToKeep = finalDf['cluster'] == i
+        ax.scatter(finalDf.loc[indicesToKeep, 'PC1']
+                   , finalDf.loc[indicesToKeep, 'PC2']
+                   # , c = color
+                   , s=50)
+    ax.legend(cluster_id)
+    ax.grid()
+
+    return fig
+
 
 #Display a single cluster
 @app.callback(
