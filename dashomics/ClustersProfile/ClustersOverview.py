@@ -115,7 +115,7 @@ def pca_projection(kvalue):
     kmeans.fit(X)
 
     labels_kmeans = kmeans.labels_
-    df_clusterid = pd.DataFrame(labels_kmeans, index=data.index)
+    df_clusterid = pd.DataFrame(labels_kmeans, index=df.index)
     df_clusterid.rename(columns={0: "cluster"}, inplace=True)
     df = pd.concat([df, df_clusterid], axis=1)
 

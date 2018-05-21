@@ -39,7 +39,6 @@ layout = html.Div([
         html.P(''),
         dcc.Link('Go to Clusters Overview', href='/ClustersProfile/ClustersOverview')
     ])
-
 ])
 
 

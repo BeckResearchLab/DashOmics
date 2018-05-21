@@ -18,7 +18,7 @@ app.layout = html.Div([
 @app.callback(Output('page-content', 'children'),
               [Input('url', 'pathname')])
 def display_page(pathname):
-    print(pathname)
+    print('run.py -- Call display_page function')
     if pathname is None:
          return "Loading"
     elif pathname == '/ModelEvaluation/SilhouetteAnalysis':
@@ -31,6 +31,8 @@ def display_page(pathname):
          return ChooseGene.layout
     else:
         return homepage.layout
+
+print('run.py -- running successfully')
 
 if __name__ == '__main__':
     app.run_server(debug=True)

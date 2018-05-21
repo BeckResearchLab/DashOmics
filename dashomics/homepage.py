@@ -1,6 +1,6 @@
 import base64
-import datetime
 import io
+import datetime
 
 import dash
 from dash.dependencies import Input, Output
@@ -8,15 +8,11 @@ import dash_html_components as html
 import dash_core_components as dcc
 import dash_table_experiments as dt
 
-#from app import app
+from app import app
 import pandas as pd
 import re
 
 import sqlite3
-
-
-app = dash.Dash()
-app.config.supress_callback_exceptions = True
 
 #create sql_master table
 con = sqlite3.connect("dashomics_test.db")
@@ -33,6 +29,11 @@ example_2 = pd.read_csv('../data/example-2-cancer.csv', index_col = ['id'])
 example_2.to_sql('example_2_cancer', con, if_exists="replace")
 con.close()
 
+print('homepage.py -- create sqlite database successfully')
+
+#app = dash.Dash()
+##Don't create a new dash app object, use the only one from app.py
+app.config.supress_callback_exceptions = True
 app.scripts.config.serve_locally = True
 
 layout = html.Div(children=[
@@ -78,11 +79,11 @@ layout = html.Div(children=[
 
         html.Br(),
         html.H4("Updated Table"),
-        #html.Div(dt.DataTable(rows=[{}], id='table'))
+        html.Div(id='data-filename'),
+        #html.Div(dt.DataTable(rows=[{}], id='display-table'))
 
     ]),
 
-    html.Div(id='output-data-upload'),
     #Links
     html.Div([
         dcc.Link('Go to Silhouette Analysis', href='/ModelEvaluation/SilhouetteAnalysis'),
@@ -95,8 +96,10 @@ layout = html.Div(children=[
     ])
 ])
 
+print('homepage.py -- create layout successfully')
 
-def parse_contents(contents, filename, date):
+
+def parse_contents(contents, filename):
     content_type, content_string = contents.split(',')
 
     decoded = base64.b64decode(content_string)
@@ -118,7 +121,7 @@ def parse_contents(contents, filename, date):
         html.H5(filename),
         html.Hr(),  # horizontal line
         # For debugging, display the raw contents provided by the web browser
-        html.Div('Raw Content Upload Successfully')
+        print('Raw Content Upload Successfully')
 
         # Use the DataTable prototype component:
         # github.com/plotly/dash-table-experiments
@@ -128,19 +131,23 @@ def parse_contents(contents, filename, date):
     ])
 
 
+
 # update sqlite database
 # and display in layout DataTable
-@app.callback(Output('table', 'rows'),
+@app.callback(Output('data-filename','children'),
+#@app.callback(Output('display-table', 'rows'),
               [Input('upload-data', 'contents'),
                Input('upload-data', 'filename'),
                Input('example-data','value')])
 
 #create a table in db to store what users choose at homepage
 def update_database(upload_contents, upload_filename, example_filename):
-
-
+    print('homepage.py -- Call update_database function')
+    if (upload_filename is None) & (example_filename is None):
+        print('No input data')
+        return
     #display upload data
-    if upload_contents is not None:
+    if (upload_contents is not None) & (example_filename is None):
         # add uploaded df to sqlite
         con = sqlite3.connect("dashomics_test.db")
         c = con.cursor()
@@ -155,32 +162,41 @@ def update_database(upload_contents, upload_filename, example_filename):
             con.commit()
             con.close()
             #display table in layout
-            return df.to_dict('records')
+            print('homepage -- add upload data successfully')
+            return df.to_dict('records'),html.Div([html.H5('Filename is %s' % str(upload_filename))])
         else:
             return [{}]
 
     #display example data
-    if example_filename is not None:
+    if (upload_contents is None) & (example_filename is not None):
         con = sqlite3.connect("dashomics_test.db")
         c = con.cursor()
-        df = pd.read_sql_query('SELECT * FROM %s' % example_filename, con)
+        df = pd.read_sql_query('SELECT * FROM %s' % str(example_filename).split('.')[0], con)
         if df is not None:
             #update "Choose or Not" status to "Yes" in sql_master table
             c.execute('''UPDATE sql_master
                          SET Choose_or_Not = 'Yes'
                          WHERE Filename = '%s'
-                         ''' % example_filename)
+                      ''' % str(example_filename).split('.')[0])
             con.commit()
             con.close()
-            return df.to_dict('records')
+            print('homepage -- choose example file successfully')
+            return df.to_dict('records'),html.Div([html.H5('Filename is %s' % str(example_filename))])
         else:
             return [{}]
-    if (upload_contents is not None) & (example_filename is not 'Choose an example data'):
+
+    if (upload_contents is not None) & (example_filename is not None):
         raise ValueError('Upload data conflicts with Example data')
     else:
         return [{}]
 
+print('homepage.py -- running successfully')
 
 app.css.append_css({
     'external_url': 'https://codepen.io/chriddyp/pen/bWLwgP.css'
 })
+
+
+
+if __name__ == '__main__':
+    app.run_server(debug=True)
