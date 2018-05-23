@@ -76,16 +76,14 @@ def silhouette_analysis(n):
         silhouette_scores = np.append(silhouette_scores, [silhouette_ave])
 
     return {
-        'data': [go.Scatter(
+        'data': [go.Bar(
             x=k_values,
             y=silhouette_scores,
-            mode= 'lines+markers',
-            marker = dict(
-                size='10')
+
         )],
         'layout': go.Layout(
             xaxis={'title': 'K Value'},
-            yaxis={'title': 'Silhouette coefficient'},
+            yaxis={'title': 'Silhouette coefficient (Sc) Value'},
             margin={'l': 40, 'b': 40, 't': 10, 'r': 10},
             hovermode='closest'
         )

@@ -1,4 +1,3 @@
-import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly.graph_objs as go
@@ -7,7 +6,7 @@ from dash.dependencies import Input, Output
 import pandas as pd
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
-import matplotlib.pyplot as plt
+import plotly
 from sklearn.decomposition import PCA
 
 print(__file__)
@@ -25,11 +24,12 @@ layout = html.Div([
 
         html.P(''),
 
-        html.Label('Choose Cluster id'),
-        dcc.Input(id='cluster-id', value = 0, type = 'number'),
-
     dcc.Graph(id='graph-cluster-size'),
+    html.P(''),
     dcc.Graph(id='graph-pca-2d'),
+    html.P(''),
+    html.Label('Choose Cluster id to display'),
+    dcc.Input(id='cluster-id', value=0, type='number'),
     dcc.Graph(id='graph-cluster-profile'),
 
     #Links
@@ -134,23 +134,30 @@ def pca_projection(kvalue):
     principalDf.index = df.index
     finalDf = pd.concat([principalDf, df[['cluster']]], axis=1)
 
-    fig = plt.figure(figsize=(8, 8))
-    ax = fig.add_subplot(1, 1, 1)
-    ax.set_xlabel('Principal Component 1', fontsize=15)
-    ax.set_ylabel('Principal Component 2', fontsize=15)
-    ax.set_title('2 component PCA', fontsize=20)
+    cluster_id = sorted(list(finalDf['cluster'].unique()))
 
-    cluster_id = list(finalDf['cluster'].unique())
-    # colors = ['r', 'g', 'b']
-    # for cluster_id, color in zip(targets,colors):
+    # Create the graph with subplots
+    fig = plotly.tools.make_subplots(rows=1, cols=1, vertical_spacing=0.2)
+    fig['layout']['margin'] = {
+        'l': 40, 'r': 40, 'b': 40, 't': 40
+    }
+
     for i in cluster_id:
         indicesToKeep = finalDf['cluster'] == i
-        ax.scatter(finalDf.loc[indicesToKeep, 'PC1']
-                   , finalDf.loc[indicesToKeep, 'PC2']
-                   # , c = color
-                   , s=50)
-    ax.legend(cluster_id)
-    ax.grid()
+        PCA_point = go.Scatter(x=finalDf.loc[indicesToKeep, 'PC1'],
+                               y=finalDf.loc[indicesToKeep, 'PC2'],
+                               name = 'cluster %s' % i,
+                               showlegend=True,
+                               mode='markers',
+                               marker=dict(size=4)
+                               )
+        fig.append_trace(PCA_point, 1, 1)
+
+    fig['layout']['xaxis'].update(title='Principal Component 1')
+    fig['layout']['yaxis'].update(title='Principal Component 2')
+
+    fig['layout'].update(height=600, width=1000,
+                         title='Principle Component Analysis 2-D Projection')
 
     return fig
 
@@ -198,23 +205,67 @@ def cluster_profile(kvalue,clusterid):
     title_str = "Cluster #" + str(clusterid) + \
                 " Profile Overview (including " + str(count[clusterid]) + " genes)"
 
+    #set sample name as x-ticks
+    xlabels = list(df.columns)
+    #print(xlabels)
     tracey = go.Scatter(
                 x = list(range(len(df_clusters.columns) - 1)),
-                y = y_mean.values[clusterid])
+                y = y_mean.values[clusterid],
+                name = 'the mean of gene expression level')
 
     tracey_lo = go.Scatter(
                 x = list(range(len(df_clusters.columns) - 1)),
-                y = y_low.values[clusterid])
+                y = y_low.values[clusterid],
+                name='the minimum of gene expression level')
 
     tracey_hi = go.Scatter(
             x=list(range(len(df_clusters.columns) - 1)),
-            y=y_high.values[clusterid])
+            y=y_high.values[clusterid],
+                name='the maximum of gene expression level')
+    """
+    bandxaxis = dict(
+        title="sample name",
+        #range=[0, len(bands.kpoints)],
+        showgrid=True,
+        showline=True,
+        #ticks="",
+        showticklabels=True,
+        tickangle=45,
+        #mirror=True,
+        #linewidth=2,
+        ticktext=xlabels
+        #tickvals=[i for i in range(len(xlabels))]
+    ),
+    bandyaxis = dict(
+        title="expression level",
+        #range=[emin, emax],
+        showgrid=True,
+        showline=True,
+        #zeroline=True,
+        #mirror="ticks",
+        #ticks="inside",
+        linewidth=2,
+        tickwidth=2,
+        zerolinewidth=2
+    )
+    """
 
     return {'data':[tracey, tracey_lo, tracey_hi],
-        'layout': go.Layout(height=300, width=800,
+        'layout': go.Layout(height=300, width=1000,
             title=title_str,
-            #xaxis = {'title':'cluster id'},
-            #yaxis = {'title':'number of genes in each cluster'},
+            titlefont=dict(family='Arial, sans-serif',size=18),
+            xaxis=dict(
+                    title="sample name",
+                    showgrid=True,
+                    showline=True,
+                    showticklabels=True,
+                    tickangle=45,
+                    ticktext=xlabels),
+            yaxis=dict(
+                    title="expression level",
+                    showgrid=True,
+                    showline=True),
+            showlegend=True,
             margin={'l': 40, 'b': 40, 't': 40, 'r': 40},
             hovermode='closest'
         )

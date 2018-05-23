@@ -1,6 +1,7 @@
 from dash.dependencies import Input, Output
 import dash_core_components as dcc
 import dash_html_components as html
+import dash_table_experiments as dt
 
 from app import app
 import homepage
@@ -11,7 +12,8 @@ import sqlite3
 
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
-    html.Div(id='page-content')
+    html.Div(id='page-content'),
+    html.Div(dt.DataTable(rows=[{}]), style={'display': 'none'})
 ])
 
 

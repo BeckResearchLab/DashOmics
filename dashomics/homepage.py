@@ -1,8 +1,6 @@
 import base64
 import io
-import datetime
 
-import dash
 from dash.dependencies import Input, Output
 import dash_html_components as html
 import dash_core_components as dcc
@@ -10,7 +8,6 @@ import dash_table_experiments as dt
 
 from app import app
 import pandas as pd
-import re
 
 import sqlite3
 
@@ -32,7 +29,7 @@ con.close()
 print('homepage.py -- create sqlite database successfully')
 
 #app = dash.Dash()
-##Don't create a new dash app object, use the only one from app.py
+##Don't create a new dash app object, use the original one from app.py
 app.config.supress_callback_exceptions = True
 app.scripts.config.serve_locally = True
 
@@ -80,8 +77,11 @@ layout = html.Div(children=[
         html.Br(),
         html.H4("Updated Table"),
         html.Div(id='data-filename'),
-        #html.Div(dt.DataTable(rows=[{}], id='display-table'))
 
+        dt.DataTable(
+            rows=[{}],
+            editable=True, id='editable-table'
+        )
     ]),
 
     #Links
@@ -134,8 +134,8 @@ def parse_contents(contents, filename):
 
 # update sqlite database
 # and display in layout DataTable
-@app.callback(Output('data-filename','children'),
-#@app.callback(Output('display-table', 'rows'),
+#@app.callback(Output('data-filename','children'),
+@app.callback(Output('editable-table', 'rows'),
               [Input('upload-data', 'contents'),
                Input('upload-data', 'filename'),
                Input('example-data','value')])
@@ -163,8 +163,10 @@ def update_database(upload_contents, upload_filename, example_filename):
             con.close()
             #display table in layout
             print('homepage -- add upload data successfully')
-            return df.to_dict('records'),html.Div([html.H5('Filename is %s' % str(upload_filename))])
+            return df.to_dict('records')
+                #,html.Div([html.H5('Filename is %s' % str(upload_filename))])
         else:
+            con.close()
             return [{}]
 
     #display example data
@@ -181,8 +183,10 @@ def update_database(upload_contents, upload_filename, example_filename):
             con.commit()
             con.close()
             print('homepage -- choose example file successfully')
-            return df.to_dict('records'),html.Div([html.H5('Filename is %s' % str(example_filename))])
+            return df.to_dict('records')
+                #,html.Div([html.H5('Filename is %s' % str(example_filename))])
         else:
+            con.close()
             return [{}]
 
     if (upload_contents is not None) & (example_filename is not None):
@@ -198,5 +202,5 @@ app.css.append_css({
 
 
 
-if __name__ == '__main__':
-    app.run_server(debug=True)
+#if __name__ == '__main__':
+#    app.run_server(debug=True)
