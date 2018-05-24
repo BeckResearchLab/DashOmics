@@ -17,9 +17,11 @@ import re
 
 
 layout = html.Div([
-        html.H3('Clusters Profile: Overview'),
+        html.H3('Step 2 -- Cluster Profile: Clusters Overview'),
 
-        html.Label('Choose K Value'),
+        html.P(''),
+
+        html.H4('Choose K Value'),
         dcc.Input(id='k-value', value= 15, type='number'),
 
         html.P(''),
@@ -28,24 +30,26 @@ layout = html.Div([
     html.P(''),
     dcc.Graph(id='graph-pca-2d'),
     html.P(''),
-    html.Label('Choose Cluster id to display'),
+
+    html.H4('Choose Cluster id to Display'),
     dcc.Input(id='cluster-id', value=0, type='number'),
     dcc.Graph(id='graph-cluster-profile'),
 
     #Links
+    html.P(''),
     html.Div([
-        dcc.Link('Go to Home Page', href='/'),
+        dcc.Link('Go to Home Page -- Step 0: Define Input Data', href='/'),
         html.P(''),
-        dcc.Link('Go to Silhouette Analysis', href='/ModelEvaluation/SilhouetteAnalysis'),
+        dcc.Link('Go to Step 1 -- Model Evaluation: Elbow Method', href='/ModelEvaluation/ElbowMethod'),
         html.P(''),
-        dcc.Link('Go to Elbow Method', href='/ModelEvaluation/ElbowMethod'),
+        dcc.Link('Go to Step 1 -- Model Evaluation: Silhouette Analysis', href='/ModelEvaluation/SilhouetteAnalysis'),
         html.P(''),
-        dcc.Link('Go to Choose Gene', href='/ClustersProfile/ChooseGene')
+        dcc.Link('Go to Step 2 -- Cluster Profile: Choose Gene', href='/ClustersProfile/ChooseGene')
     ])
 ])
 
 
-#Cluster Sizes
+#Cluster Sizes Figure
 @app.callback(
     Output('graph-cluster-size', 'figure'),
     [Input(component_id='k-value',component_property='value')]
@@ -83,7 +87,7 @@ def cluster_size_figure(kvalue):
             x = list(count.index),
             y = count.values
         )],
-        'layout': go.Layout(height=300, width=800,
+        'layout': go.Layout(height=300, width=1000,
             xaxis = {'title':'cluster id'},
             yaxis = {'title':'number of genes in each cluster'},
             margin={'l': 40, 'b': 40, 't': 40, 'r': 40},

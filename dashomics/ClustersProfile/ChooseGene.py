@@ -14,14 +14,13 @@ import sqlite3
 import re
 
 layout = html.Div([
+    html.H3('Step 2 -- Cluster Profile: Choose Gene and Display its cluster'),
     html.Div([
-        html.H3('Choose Gene and Display its cluster'),
-
+        html.H4('Type in Gene Name'),
         html.P(''),
-        html.Label('Type in Gene Name'),
-        dcc.Input(id='input_gene', value='input gene name', type='text'),
+        dcc.Input(id='input_gene', value='gene name', type='text'),
         html.P(''),
-        html.Label('Choose K Value'),
+        html.H4('Choose K Value'),
         dcc.Input(id='k-value', value= 15, type='number')
     ]),
 
@@ -29,13 +28,13 @@ layout = html.Div([
 
     # Links
     html.Div([
-        dcc.Link('Go to Home Page', href='/'),
+        dcc.Link('Go to Home Page -- Step 0: Define Input Data', href='/'),
         html.P(''),
-        dcc.Link('Go to Silhouette Analysis', href='/ModelEvaluation/SilhouetteAnalysis'),
+        dcc.Link('Go to Step 1 -- Model Evaluation: Elbow Method', href='/ModelEvaluation/ElbowMethod'),
         html.P(''),
-        dcc.Link('Go to Elbow Method', href='/ModelEvaluation/ElbowMethod'),
+        dcc.Link('Go to Step 1 -- Model Evaluation: Silhouette Analysis', href='/ModelEvaluation/SilhouetteAnalysis'),
         html.P(''),
-        dcc.Link('Go to Clusters Overview', href='/ClustersProfile/ClustersOverview')
+        dcc.Link('Go to Step 2 -- Cluster Profile: Clusters Overview', href='/ClustersProfile/ClustersOverview')
     ])
 ])
 

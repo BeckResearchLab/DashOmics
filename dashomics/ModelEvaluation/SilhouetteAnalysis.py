@@ -20,18 +20,18 @@ import re
 app.config.supress_callback_exceptions = True
 
 layout = html.Div([
-    html.H3('Model Evaluation: Silhouette Analysis'),
+    html.H3('Step 1 -- Model Evaluation: Silhouette Analysis'),
     dcc.Input(id='k-range', value= 10, type='number'),
     dcc.Graph(id='graph-silhouette_analysis'),
     html.Div(id='app-1-display-value'),
     html.Div([
-        dcc.Link('Go to Home Page', href='/'),
+        dcc.Link('Go to Home Page -- Step 0: Define Input Data', href='/'),
         html.P(''),
-        dcc.Link('Go to Elbow Method', href='/ModelEvaluation/ElbowMethod'),
+        dcc.Link('Go to Step 1 -- Model Evaluation: Elbow Method', href='/ModelEvaluation/ElbowMethod'),
         html.P(''),
-        dcc.Link('Go to Clusters Overview', href='/ClustersProfile/ClustersOverview'),
+        dcc.Link('Go to Step 2 -- Cluster Profile: Clusters Overview', href='/ClustersProfile/ClustersOverview'),
         html.P(''),
-        dcc.Link('Go to Choose Gene', href='/ClustersProfile/ChooseGene')
+        dcc.Link('Go to Step 2 -- Cluster Profile: Choose Gene', href='/ClustersProfile/ChooseGene')
         ])
     ])
 
@@ -80,8 +80,8 @@ def silhouette_analysis(n):
             y=silhouette_scores,
 
         )],
-        'layout': go.Layout(
-            xaxis={'title': 'K Value'},
+        'layout': go.Layout(height=600, width=1000,
+            xaxis={'title': 'K Value','range': [1,n+1]},
             yaxis={'title': 'Silhouette coefficient (Sc) Value'},
             margin={'l': 40, 'b': 40, 't': 10, 'r': 10},
             hovermode='closest'

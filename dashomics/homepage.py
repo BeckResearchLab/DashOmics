@@ -45,9 +45,10 @@ layout = html.Div(children=[
         to help find the optimal k value (the number of clusters). 
         Users can explore cluster profiles of grouped genes based on specific k value and generate insights into gene functions and networks.
     '''),
-
+    html.P(''),
+    html.H3(children='Step 0: Define Input Data'),
     html.Div([
-        html.H3("Choosing Example Data to Explore DashOmics"),
+        html.H4("Choosing Example Data to Explore DashOmics"),
         dcc.Dropdown(
             id='example-data',
             options = [
@@ -55,7 +56,7 @@ layout = html.Div(children=[
                 {'label':'example_2', 'value':'example_2_cancer'}
             ]),
 
-        html.H3("Or Upload Your Own Files"),
+        html.H4("Or Upload Your Own Files"),
         dcc.Upload(
             id='upload-data',
             children=html.Div([
@@ -80,19 +81,19 @@ layout = html.Div(children=[
 
         dt.DataTable(
             rows=[{}],
-            editable=True, id='editable-table'
+            editable=True, id='input-data-table'
         )
     ]),
 
     #Links
     html.Div([
-        dcc.Link('Go to Silhouette Analysis', href='/ModelEvaluation/SilhouetteAnalysis'),
+        dcc.Link('Go to Step 1 -- Model Evaluation: Elbow Method', href='/ModelEvaluation/ElbowMethod'),
         html.P(''),
-        dcc.Link('Go to Elbow Method', href='/ModelEvaluation/ElbowMethod'),
+        dcc.Link('Go to Step 1 -- Model Evaluation: Silhouette Analysis', href='/ModelEvaluation/SilhouetteAnalysis'),
         html.P(''),
-        dcc.Link('Go to Clusters Overview', href='/ClustersProfile/ClustersOverview'),
+        dcc.Link('Go to Step 2 -- Cluster Profile: Clusters Overview', href='/ClustersProfile/ClustersOverview'),
         html.P(''),
-        dcc.Link('Go to Choose Gene', href='/ClustersProfile/ChooseGene')
+        dcc.Link('Go to Step 2 -- Cluster Profile: Choose Gene', href='/ClustersProfile/ChooseGene')
     ])
 ])
 
@@ -135,7 +136,7 @@ def parse_contents(contents, filename):
 # update sqlite database
 # and display in layout DataTable
 #@app.callback(Output('data-filename','children'),
-@app.callback(Output('editable-table', 'rows'),
+@app.callback(Output('input-data-table', 'rows'),
               [Input('upload-data', 'contents'),
                Input('upload-data', 'filename'),
                Input('example-data','value')])
@@ -164,7 +165,6 @@ def update_database(upload_contents, upload_filename, example_filename):
             #display table in layout
             print('homepage -- add upload data successfully')
             return df.to_dict('records')
-                #,html.Div([html.H5('Filename is %s' % str(upload_filename))])
         else:
             con.close()
             return [{}]
@@ -184,7 +184,6 @@ def update_database(upload_contents, upload_filename, example_filename):
             con.close()
             print('homepage -- choose example file successfully')
             return df.to_dict('records')
-                #,html.Div([html.H5('Filename is %s' % str(example_filename))])
         else:
             con.close()
             return [{}]

@@ -23,18 +23,20 @@ import re
 app.config.supress_callback_exceptions = True
 
 layout = html.Div([
-    html.H3('Model Evaluation：Elbow Method'),
+    html.H3('Step 1 -- Model Evaluation: Elbow Method'),
+    html.P(''),
+    html.H4('Choose range of K Value'),
     dcc.Input(id='k-range', value= 10, type='number'),
     dcc.Graph(id='graph-elbow_method'),
     html.Div(id='app-2-display-value'),
     html.Div([
-        dcc.Link('Go to Home Page', href='/'),
+        dcc.Link('Go to Home Page -- Step 0: Define Input Data', href='/'),
         html.P(''),
-        dcc.Link('Go to Silhouette Analysis', href='/ModelEvaluation/SilhouetteAnalysis'),
+        dcc.Link('Go to Step 1 -- Model Evaluation: Silhouette Analysis', href='/ModelEvaluation/SilhouetteAnalysis'),
         html.P(''),
-        dcc.Link('Go to Clusters Overview', href='/ClustersProfile/ClustersOverview'),
+        dcc.Link('Go to Step 2 -- Cluster Profile: Clusters Overview', href='/ClustersProfile/ClustersOverview'),
         html.P(''),
-        dcc.Link('Go to Choose Gene', href='/ClustersProfile/ChooseGene')
+        dcc.Link('Go to Step 2 -- Cluster Profile: Choose Gene', href='/ClustersProfile/ChooseGene')
     ])
 ])
 
@@ -82,8 +84,9 @@ def elbow_method_evaluation(n):
 
     # Create the graph with subplots
     fig = plotly.tools.make_subplots(rows=2, cols=1, vertical_spacing=0.2, shared_xaxes=True,
-                                     subplot_titles=('Sum of Within-cluster Distance/1000',
-                                                     'Difference of Sum of Within-cluster Distance to Next Lower K/1000'))
+                                     #subplot_titles=('Sum of Within-cluster Distance/1000',
+                                     #               'Difference of Sum of Within-cluster Distance to Next Lower K/1000')
+                                     )
     fig['layout']['margin'] = {
         'l': 40, 'r': 40, 'b': 40, 't': 40
     }
@@ -92,7 +95,7 @@ def elbow_method_evaluation(n):
     fig.append_trace({
         'x': list(K),
         'y': list(wss),
-        #'name': 'Sum of Within-cluster Distance/1000',
+        'name': 'Sum of Within-cluster Distance/1000',
         'mode': 'lines+markers',
         'type': 'scatter'
     }, 1, 1)
@@ -100,7 +103,7 @@ def elbow_method_evaluation(n):
         'x': list(K),
         'y': list(dwss),
         #'text': data['time'],
-        #'name': 'Difference of Sum of Within-cluster Distance to Next Lower K/1000',
+        'name': 'Difference of Sum of Within-cluster Distance to Next Lower K/1000',
         'mode': 'lines+markers',
         'type': 'scatter'
     }, 2, 1)
@@ -111,6 +114,8 @@ def elbow_method_evaluation(n):
     fig['layout']['yaxis2'].update(title='Distance Value')
 
     fig['layout'].update(height=600, width=1000,
+                         legend=dict(orientation="h"),
                          title='Model Evaluation: Elbow Method for Optimal K Value')
 
     return fig
+
