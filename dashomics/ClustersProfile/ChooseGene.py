@@ -1,6 +1,5 @@
 import pandas as pd
 
-import dash
 from dash.dependencies import Input, Output
 import dash_core_components as dcc
 import dash_html_components as html
@@ -14,15 +13,14 @@ from app import app
 import sqlite3
 import re
 
-#df = pd.read_csv('df5_log2_ratio.csv', index_col = ['locus_tag'])
-
 layout = html.Div([
     html.Div([
         html.H3('Choose Gene and Display its cluster'),
-        dcc.Input(id='input_gene', value='gene name', type='text'),
 
         html.P(''),
-
+        html.Label('Type in Gene Name'),
+        dcc.Input(id='input_gene', value='input gene name', type='text'),
+        html.P(''),
         html.Label('Choose K Value'),
         dcc.Input(id='k-value', value= 15, type='number')
     ]),
@@ -74,37 +72,57 @@ def gene_clusterprofile(input_gene, k_value):
     df_clusterid.rename(columns={0: "cluster"}, inplace=True)
     df_clusters = pd.concat([df, df_clusterid], axis=1)
 
-    genes_clusterid = df_clusterid.loc[input_gene]
+    if input_gene not in list(df.index):
+        raise ValueError('Input gene name is not in the dataset')
+        return
+    else:
+        genes_clusterid = df_clusterid.loc[input_gene][0]
 
-    count = df_clusters.groupby('cluster').count().iloc[:, 0]
+        count = df_clusters.groupby('cluster').count().iloc[:, 0]
 
-    y_stdev = df_clusters.groupby("cluster").std()
-    y_mean = df_clusters.groupby("cluster").mean()
+        y_stdev = df_clusters.groupby("cluster").std()
+        y_mean = df_clusters.groupby("cluster").mean()
 
-    y_low = y_mean.subtract(y_stdev, fill_value=0)
-    y_high = y_mean.add(y_stdev, fill_value=0)
+        y_low = y_mean.subtract(y_stdev, fill_value=0)
+        y_high = y_mean.add(y_stdev, fill_value=0)
 
-    title_str = "Cluster #" + str(genes_clusterid) + \
-                " Profile Overview (including " + str(count[genes_clusterid]) + " genes)"
+        title_str = "Cluster #" + str(genes_clusterid) + \
+                    " Profile Overview (including " + str(count[genes_clusterid]) + " genes)"
+        # set sample name as x-ticks
+        xlabels = list(df.columns)
 
-    tracey = go.Scatter(
-                x = list(range(len(df_clusters.columns) - 1)),
-                y = y_mean.values[genes_clusterid])
+        tracey = go.Scatter(
+                    x = list(range(len(df_clusters.columns) - 1)),
+                    y = y_mean.values[genes_clusterid],
+                    name = 'the mean of gene expression level')
 
-    tracey_lo = go.Scatter(
-                x = list(range(len(df_clusters.columns) - 1)),
-                y = y_low.values[genes_clusterid])
+        tracey_lo = go.Scatter(
+                    x=list(range(len(df_clusters.columns) - 1)),
+                    y=y_low.values[genes_clusterid],
+                    name='the minimum of gene expression level')
 
-    tracey_hi = go.Scatter(
-            x=list(range(len(df_clusters.columns) - 1)),
-            y=y_high.values[genes_clusterid])
+        tracey_hi = go.Scatter(
+                    x=list(range(len(df_clusters.columns) - 1)),
+                    y=y_high.values[genes_clusterid],
+                    name='the maximum of gene expression level')
 
-    return {'data':[tracey, tracey_lo, tracey_hi],
-        'layout': go.Layout(height=300, width=800,
+        return {'data':[tracey, tracey_lo, tracey_hi],
+            'layout': go.Layout(height=300, width=1000,
             title=title_str,
-            #xaxis = {'title':'cluster id'},
-            #yaxis = {'title':'number of genes in each cluster'},
+            titlefont=dict(family='Arial, sans-serif',size=18),
+            xaxis=dict(
+                    title="sample name",
+                    showgrid=True,
+                    showline=True,
+                    showticklabels=True,
+                    tickangle=45,
+                    ticktext=xlabels),
+            yaxis=dict(
+                    title="expression level",
+                    showgrid=True,
+                    showline=True),
+            showlegend=True,
             margin={'l': 40, 'b': 40, 't': 40, 'r': 40},
             hovermode='closest'
         )
-    }
+        }

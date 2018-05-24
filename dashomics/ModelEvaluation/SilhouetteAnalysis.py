@@ -16,7 +16,6 @@ from app import app
 
 import sqlite3
 import re
-#df = pd.read_csv('../data/example-1.csv', index_col = ['id'])
 
 app.config.supress_callback_exceptions = True
 
@@ -88,4 +87,3 @@ def silhouette_analysis(n):
             hovermode='closest'
         )
     }
-

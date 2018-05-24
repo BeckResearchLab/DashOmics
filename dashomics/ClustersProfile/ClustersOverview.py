@@ -136,6 +136,9 @@ def pca_projection(kvalue):
 
     cluster_id = sorted(list(finalDf['cluster'].unique()))
 
+    PC1_variance = pca.explained_variance_ratio_[0]
+    PC2_variance = pca.explained_variance_ratio_[1]
+
     # Create the graph with subplots
     fig = plotly.tools.make_subplots(rows=1, cols=1, vertical_spacing=0.2)
     fig['layout']['margin'] = {
@@ -153,8 +156,9 @@ def pca_projection(kvalue):
                                )
         fig.append_trace(PCA_point, 1, 1)
 
-    fig['layout']['xaxis'].update(title='Principal Component 1')
-    fig['layout']['yaxis'].update(title='Principal Component 2')
+    # add variance it explained
+    fig['layout']['xaxis'].update(title='PC1, explained variance ratio: %s' % PC1_variance)
+    fig['layout']['yaxis'].update(title='PC2, explained variance ratio: %s' % PC2_variance)
 
     fig['layout'].update(height=600, width=1000,
                          title='Principle Component Analysis 2-D Projection')
@@ -219,8 +223,8 @@ def cluster_profile(kvalue,clusterid):
                 name='the minimum of gene expression level')
 
     tracey_hi = go.Scatter(
-            x=list(range(len(df_clusters.columns) - 1)),
-            y=y_high.values[clusterid],
+                x=list(range(len(df_clusters.columns) - 1)),
+                y=y_high.values[clusterid],
                 name='the maximum of gene expression level')
     """
     bandxaxis = dict(
