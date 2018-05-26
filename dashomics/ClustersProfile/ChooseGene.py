@@ -16,12 +16,12 @@ import re
 layout = html.Div([
     html.H3('Step 2 -- Cluster Profile: Choose Gene and Display its cluster'),
     html.Div([
+        html.H4('Choose K Value'),
+        dcc.Input(id='k-value', value= 15, type='number'),
+        html.P(''),
         html.H4('Type in Gene Name'),
         html.P(''),
-        dcc.Input(id='input_gene', value='gene name', type='text'),
-        html.P(''),
-        html.H4('Choose K Value'),
-        dcc.Input(id='k-value', value= 15, type='number')
+        dcc.Input(id='input_gene', value='gene name', type='text')
     ]),
 
     dcc.Graph(id='graph-gene-clusterprofile'),

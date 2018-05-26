@@ -36,6 +36,8 @@ layout = html.Div([
         html.P(''),
         dcc.Link('Go to Step 2 -- Cluster Profile: Clusters Overview', href='/ClustersProfile/ClustersOverview'),
         html.P(''),
+        dcc.Link('Go to Step 2 -- Cluster Profile: Choose Cluster', href='/ClustersProfile/ChooseCluster'),
+        html.P(''),
         dcc.Link('Go to Step 2 -- Cluster Profile: Choose Gene', href='/ClustersProfile/ChooseGene')
     ])
 ])

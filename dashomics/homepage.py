@@ -93,12 +93,13 @@ layout = html.Div(children=[
         html.P(''),
         dcc.Link('Go to Step 2 -- Cluster Profile: Clusters Overview', href='/ClustersProfile/ClustersOverview'),
         html.P(''),
+        dcc.Link('Go to Step 2 -- Cluster Profile: Choose Cluster', href='/ClustersProfile/ChooseCluster'),
+        html.P(''),
         dcc.Link('Go to Step 2 -- Cluster Profile: Choose Gene', href='/ClustersProfile/ChooseGene')
     ])
 ])
 
 print('homepage.py -- create layout successfully')
-
 
 def parse_contents(contents, filename):
     content_type, content_string = contents.split(',')

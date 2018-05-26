@@ -6,7 +6,7 @@ import dash_table_experiments as dt
 from app import app
 import homepage
 from ModelEvaluation import SilhouetteAnalysis, ElbowMethod
-from ClustersProfile import ClustersOverview, ChooseGene
+from ClustersProfile import ClustersOverview, ChooseCluster, ChooseGene
 
 import sqlite3
 
@@ -29,6 +29,8 @@ def display_page(pathname):
          return ElbowMethod.layout
     elif pathname == '/ClustersProfile/ClustersOverview':
          return ClustersOverview.layout
+    elif pathname == '/ClustersProfile/ChooseCluster':
+         return ChooseCluster.layout
     elif pathname == '/ClustersProfile/ChooseGene':
          return ChooseGene.layout
     else:
