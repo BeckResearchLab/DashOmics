@@ -91,8 +91,8 @@ def cluster_size_figure(kvalue):
             y = count.values
         )],
         'layout': go.Layout(height=300, width=1000,
-            xaxis = {'title':'cluster id'},
-            yaxis = {'title':'number of genes in each cluster'},
+            xaxis = {'title':'Cluster Id'},
+            yaxis = {'title':'Number of Genes in Each Cluster'},
             margin={'l': 40, 'b': 40, 't': 40, 'r': 40},
             hovermode='closest'
         )
@@ -224,12 +224,12 @@ def pca_projection(kvalue):
             x=list(range(pc_number)),
             y=var,
             mode='lines+markers',
-            name='total variance explained'
+            name='Total Variance Explained'
         )
     trace2 = go.Bar(
             x=list(range(pc_number)),
             y=single_variance,
-            name='variance explained by single principle component'
+            name='Variance Explained by Single Principle Component'
     )
 
 

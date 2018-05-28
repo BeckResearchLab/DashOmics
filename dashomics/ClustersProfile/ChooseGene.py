@@ -14,7 +14,8 @@ import sqlite3
 import re
 
 layout = html.Div([
-    html.H3('Step 2 -- Cluster Profile: Choose Gene and Display its cluster'),
+    html.H3('Step 2 -- Cluster Profile: Choose Gene'),
+
     # Links
     html.Div([
         dcc.Link('Go to Home Page -- Step 0: Define Input Data', href='/'),
@@ -26,6 +27,7 @@ layout = html.Div([
         dcc.Link('Go to Step 2 -- Cluster Profile: Clusters Overview', href='/ClustersProfile/ClustersOverview')
     ]),
     html.P(''),
+
     html.Div([
         html.H4('Choose K Value'),
         dcc.Input(id='k-value', value= 15, type='number'),
@@ -90,40 +92,53 @@ def gene_clusterprofile(input_gene, k_value):
         title_str = "Cluster #" + str(genes_clusterid) + \
                     " Profile Overview (including " + str(count[genes_clusterid]) + " genes)"
         # set sample name as x-ticks
-        xlabels = list(df.columns)
+        samplename = list(df.columns)
 
         tracey = go.Scatter(
-                    x = list(range(len(df_clusters.columns) - 1)),
+                    x = samplename,
                     y = y_mean.values[genes_clusterid],
                     name = 'the mean of gene expression level')
 
         tracey_lo = go.Scatter(
-                    x=list(range(len(df_clusters.columns) - 1)),
+                    x=samplename,
                     y=y_low.values[genes_clusterid],
                     name='the minimum of gene expression level')
 
         tracey_hi = go.Scatter(
-                    x=list(range(len(df_clusters.columns) - 1)),
+                    x=samplename,
                     y=y_high.values[genes_clusterid],
                     name='the maximum of gene expression level')
+        chosen_gene = go.Scatter(
+                        x=samplename,
+                        y=df.loc[input_gene],
+                        name='expression level of %s' % input_gene,
+                        line=dict(
+                            width=2,
+                            dash='dot'
+                        ))
 
-        return {'data':[tracey, tracey_lo, tracey_hi],
-            'layout': go.Layout(height=300, width=1000,
+        return {'data':[tracey, tracey_lo, tracey_hi, chosen_gene],
+            'layout': go.Layout(height=500, width=1300,
             title=title_str,
             titlefont=dict(family='Arial, sans-serif',size=18),
             xaxis=dict(
-                    title="sample name",
+                    title="Sample Name",
                     showgrid=True,
                     showline=True,
                     showticklabels=True,
-                    tickangle=45,
-                    ticktext=xlabels),
+                    tickangle=45),
             yaxis=dict(
-                    title="expression level",
+                    title="Expression Level",
                     showgrid=True,
                     showline=True),
+            legend=dict(x=0.1, y=1.1,
+                        traceorder='normal',
+                        orientation="h",
+                        font=dict(
+                                family='sans-serif',
+                                size=12)),
             showlegend=True,
-            margin={'l': 40, 'b': 40, 't': 40, 'r': 40},
+            margin={'l': 60, 'b': 150, 't': 60, 'r': 60},
             hovermode='closest'
         )
-        }
+    }

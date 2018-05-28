@@ -31,15 +31,18 @@ layout = html.Div([
     html.P(''),
 
     html.Div([
-        html.H4('Choose K Value'),
-        dcc.Input(id='k-value', value= 15, type='number')
-    ]),
-        html.H4('Choose Cluster id'),
-        dcc.Input(id='cluster-id', value=0, type='number'),
-        dcc.Graph(id='graph-single-cluster-profile'),
-        dt.DataTable(
-            rows=[{}],
-            editable=True, id='gene-table'
+        html.Div([
+            html.H4('Choose K Value'),
+            dcc.Input(id='k-value', value= 15, type='number')],className="row1"),
+        html.Div([
+            html.H4('Choose Cluster id'),
+            dcc.Input(id='cluster-id', value=0, type='number')],className="row1")
+        ], className="row"),
+
+    dcc.Graph(id='graph-single-cluster-profile'),
+    dt.DataTable(
+        rows=[{}],
+        editable=True, id='gene-table'
         ),
 
     # Links
@@ -48,12 +51,11 @@ layout = html.Div([
     ])
 ])
 
+
 #Display a single cluster
-@app.callback(
-    Output('graph-single-cluster-profile', 'figure'),
-    [Input(component_id='k-value',component_property='value'),
-     Input(component_id='cluster-id', component_property='value')]
-)
+@app.callback(Output('graph-single-cluster-profile', 'figure'),
+            [Input(component_id='k-value',component_property='value'),
+             Input(component_id='cluster-id', component_property='value')])
 
 def cluster_profile(kvalue,clusterid):
 
@@ -92,67 +94,45 @@ def cluster_profile(kvalue,clusterid):
                 " Profile Overview (including " + str(count[clusterid]) + " genes)"
 
     #set sample name as x-ticks
-    xlabels = list(df.columns)
-    #print(xlabels)
+    samplename = list(df.columns)
+
     tracey = go.Scatter(
-                x = list(range(len(df_clusters.columns) - 1)),
+                x = samplename,
                 y = y_mean.values[clusterid],
                 name = 'the mean of gene expression level')
 
     tracey_lo = go.Scatter(
-                x = list(range(len(df_clusters.columns) - 1)),
+                x=samplename,
                 y = y_low.values[clusterid],
                 name='the minimum of gene expression level')
 
     tracey_hi = go.Scatter(
-                x=list(range(len(df_clusters.columns) - 1)),
+                x=samplename,
                 y=y_high.values[clusterid],
                 name='the maximum of gene expression level')
-    """
-    bandxaxis = dict(
-        title="sample name",
-        #range=[0, len(bands.kpoints)],
-        showgrid=True,
-        showline=True,
-        #ticks="",
-        showticklabels=True,
-        tickangle=45,
-        #mirror=True,
-        #linewidth=2,
-        ticktext=xlabels
-        #tickvals=[i for i in range(len(xlabels))]
-    ),
-    bandyaxis = dict(
-        title="expression level",
-        #range=[emin, emax],
-        showgrid=True,
-        showline=True,
-        #zeroline=True,
-        #mirror="ticks",
-        #ticks="inside",
-        linewidth=2,
-        tickwidth=2,
-        zerolinewidth=2
-    )
-    """
 
     return {'data':[tracey, tracey_lo, tracey_hi],
-        'layout': go.Layout(height=300, width=1000,
+        'layout': go.Layout(height=500, width=1300,
             title=title_str,
             titlefont=dict(family='Arial, sans-serif',size=18),
             xaxis=dict(
-                    title="sample name",
+                    title="Sample Name",
                     showgrid=True,
                     showline=True,
                     showticklabels=True,
-                    tickangle=45,
-                    ticktext=xlabels),
+                    tickangle=45),
             yaxis=dict(
-                    title="expression level",
+                    title="Expression Level",
                     showgrid=True,
                     showline=True),
+            legend=dict(x=0.1, y=1.1,
+                        traceorder='normal',
+                        orientation="h",
+                        font=dict(
+                            family='sans-serif',
+                            size=12)),
             showlegend=True,
-            margin={'l': 40, 'b': 40, 't': 40, 'r': 40},
+            margin={'l': 60, 'b': 150, 't': 60, 'r': 60},
             hovermode='closest'
         )
     }
