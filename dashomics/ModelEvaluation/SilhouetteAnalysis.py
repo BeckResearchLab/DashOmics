@@ -21,6 +21,12 @@ app.config.supress_callback_exceptions = True
 
 layout = html.Div([
     html.H3('Step 1 -- Model Evaluation: Silhouette Analysis'),
+    html.Div([
+        dcc.Link('Go to Home Page -- Step 0: Define Input Data', href='/'),
+        html.P(''),
+        dcc.Link('Go to Step 1 -- Model Evaluation: Elbow Method', href='/ModelEvaluation/ElbowMethod')
+    ]),
+    html.P(''),
     dcc.Input(id='k-range', value= 10, type='number'),
     dcc.Graph(id='graph-silhouette_analysis'),
     html.Div(id='app-1-display-value'),

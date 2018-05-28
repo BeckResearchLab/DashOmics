@@ -15,6 +15,17 @@ import re
 
 layout = html.Div([
     html.H3('Step 2 -- Cluster Profile: Choose Gene and Display its cluster'),
+    # Links
+    html.Div([
+        dcc.Link('Go to Home Page -- Step 0: Define Input Data', href='/'),
+        html.P(''),
+        dcc.Link('Go to Step 1 -- Model Evaluation: Elbow Method', href='/ModelEvaluation/ElbowMethod'),
+        html.P(''),
+        dcc.Link('Go to Step 1 -- Model Evaluation: Silhouette Analysis', href='/ModelEvaluation/SilhouetteAnalysis'),
+        html.P(''),
+        dcc.Link('Go to Step 2 -- Cluster Profile: Clusters Overview', href='/ClustersProfile/ClustersOverview')
+    ]),
+    html.P(''),
     html.Div([
         html.H4('Choose K Value'),
         dcc.Input(id='k-value', value= 15, type='number'),
@@ -26,16 +37,7 @@ layout = html.Div([
 
     dcc.Graph(id='graph-gene-clusterprofile'),
 
-    # Links
-    html.Div([
-        dcc.Link('Go to Home Page -- Step 0: Define Input Data', href='/'),
-        html.P(''),
-        dcc.Link('Go to Step 1 -- Model Evaluation: Elbow Method', href='/ModelEvaluation/ElbowMethod'),
-        html.P(''),
-        dcc.Link('Go to Step 1 -- Model Evaluation: Silhouette Analysis', href='/ModelEvaluation/SilhouetteAnalysis'),
-        html.P(''),
-        dcc.Link('Go to Step 2 -- Cluster Profile: Clusters Overview', href='/ClustersProfile/ClustersOverview')
-    ])
+
 ])
 
 

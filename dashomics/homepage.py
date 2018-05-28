@@ -132,8 +132,6 @@ def parse_contents(contents, filename):
         #dt.DataTable(rows=df.to_dict('records')),
     ])
 
-
-
 # update sqlite database
 # and display in layout DataTable
 #@app.callback(Output('data-filename','children'),
@@ -149,14 +147,17 @@ def update_database(upload_contents, upload_filename, example_filename):
         print('No input data')
         return
     #display upload data
-    if (upload_contents is not None) & (example_filename is None):
+    if (upload_filename is not None) & (example_filename is None):
         # add uploaded df to sqlite
+        print('upload not None')
         con = sqlite3.connect("dashomics_test.db")
         c = con.cursor()
         df = parse_contents(upload_contents, upload_filename)[0]
+        print('get df')
         if df is not None:
             #add df into sqlite database as table
             df.to_sql(upload_filename, con, if_exists="replace")
+            print('df to sql')
             #add upload data filename in sql_master table
             c.execute('''INSERT INTO sql_master(Filename, Choose_or_Not) 
                          VALUES ('%s', 'Yes')
@@ -167,11 +168,12 @@ def update_database(upload_contents, upload_filename, example_filename):
             print('homepage -- add upload data successfully')
             return df.to_dict('records')
         else:
+            print("else???")
             con.close()
             return [{}]
 
     #display example data
-    if (upload_contents is None) & (example_filename is not None):
+    if (upload_filename is None) & (example_filename is not None):
         con = sqlite3.connect("dashomics_test.db")
         c = con.cursor()
         df = pd.read_sql_query('SELECT * FROM %s' % str(example_filename).split('.')[0], con)
@@ -189,7 +191,7 @@ def update_database(upload_contents, upload_filename, example_filename):
             con.close()
             return [{}]
 
-    if (upload_contents is not None) & (example_filename is not None):
+    if (upload_filename is not None) & (example_filename is not None):
         raise ValueError('Upload data conflicts with Example data')
     else:
         return [{}]

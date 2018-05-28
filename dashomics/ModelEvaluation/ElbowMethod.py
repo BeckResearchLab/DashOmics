@@ -25,6 +25,10 @@ app.config.supress_callback_exceptions = True
 layout = html.Div([
     html.H3('Step 1 -- Model Evaluation: Elbow Method'),
     html.P(''),
+    html.Div([
+        dcc.Link('Go to Home Page -- Step 0: Define Input Data', href='/')
+    ]),
+    html.P(''),
     html.H4('Choose range of K Value'),
     dcc.Input(id='k-range', value= 10, type='number'),
     dcc.Graph(id='graph-elbow_method'),
